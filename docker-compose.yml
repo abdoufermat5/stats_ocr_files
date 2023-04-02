@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  postgres_auth:
+    image: postgres:13
+    container_name: postgres_auth
+    env_file:
+      - ./authentification/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+
+  postgres_traitement:
+    image: postgres:13
+    container_name: postgres_traitement
+    env_file:
+      - ./traitement_image/.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_traitement_data:/var/lib/postgresql/data
+
+  authentification:
+    build:
+      context: ./authentification
+      dockerfile: Dockerfile
+    container_name: authentification
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres_auth
+
+  traitement_image:
+    build:
+      context: ./traitement_image
+      dockerfile: Dockerfile
+    container_name: traitement_image
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres_traitement
+
+
+  api_gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - authentification
+      - traitement_image
+
+volumes:
+  postgres_auth_data:
+  postgres_traitement_data:
