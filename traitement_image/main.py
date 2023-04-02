@@ -27,9 +27,10 @@ app = FastAPI()
 async def startup():
     logger.info("Création des tables de la base de données")
     from database.database import engine
-    from models.models import Base
-    Base.metadata.create_all(bind=engine)
-    logger.info("Tables de la base de données créées avec succès")
+    with engine.connect() as connection:
+        from models.models import Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("Tables de la base de données créées avec succès")
 
 
 @app.post("/process_image/")

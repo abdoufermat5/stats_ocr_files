@@ -21,12 +21,12 @@ app = FastAPI()
 JWT_SECRET = os.getenv('JWT_SECRET')
 
 # Les adresses des autres microservices
-AUTH_SERVICE_URL = "http://authentification:8001"
-OCR_SERVICE_URL = "http://traitement_image:8002"
-STATS_SERVICE_URL = "http://statistiques:8003"
+AUTH_SERVICE_URL = "http://localhost:8001"
+OCR_SERVICE_URL = "http://localhost:8002"
+STATS_SERVICE_URL = "http://localhost:8003"
 
 
-@app.post("api/auth/register/")
+@app.post("/api/auth/register/")
 async def register(username: str, password: str):
     async with AsyncClient() as client:
         logger.info(f"Création de l'utilisateur {username}")
@@ -35,12 +35,12 @@ async def register(username: str, password: str):
         if response.status_code != 200:
             logger.error(f"Erreur lors de la création de l'utilisateur {username}: {response.json()}")
             raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà utilisé")
-        access_token = response.json()['access_token']
+
         logger.info(f"Utilisateur {username} créé avec succès")
-    return {"access_token": access_token}
+    return {"message": "Utilisateur créé avec succès"}
 
 
-@app.post("api/auth/login/")
+@app.post("/api/auth/login/")
 async def login(username: str, password: str):
     logger.info(f"Authentification de l'utilisateur {username}")
     async with AsyncClient() as client:
@@ -54,7 +54,7 @@ async def login(username: str, password: str):
     return {"access_token": access_token}
 
 
-@app.get("api/auth/me/")
+@app.get("/api/auth/me/")
 async def read_users_me(authorization: str = Header(None)):
     async with AsyncClient() as client:
         headers = {"Authorization": authorization}
@@ -64,7 +64,7 @@ async def read_users_me(authorization: str = Header(None)):
     return response.json()
 
 
-@app.post("api/traitement_image/traite")
+@app.post("/api/traitement_image/traite")
 async def process_image(files: List[UploadFile] = File(...), authorization: str = Header(None)):
     # Vérification de l'authentification de l'utilisateur
     try:
@@ -88,7 +88,7 @@ async def process_image(files: List[UploadFile] = File(...), authorization: str 
     return JSONResponse(content=result)
 
 
-@app.get("api/stats/")
+@app.get("/api/stats/")
 async def get_stats(authorization: str = Header(None)):
     # Vérification de l'authentification de l'utilisateur
     try:
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     import uvicorn
 
     host, port = "localhost", 8000
-    uvicorn.run(app,
+    uvicorn.run("main:app",
                 host=host,
                 port=port,
                 log_level="info",

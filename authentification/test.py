@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy import text
 
-DATABASE_URL = "postgresql://abdou:password123@localhost:5433/traitement_db"
+DATABASE_URL = "postgresql://abdou:password123@localhost:5434/auth_db"
 engine = create_engine(DATABASE_URL)
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def create_user(db: Session, user: UserCreate):
+def create_db_user(db: Session, user: UserCreate):
     logger.info("Création de l'utilisateur")
     hashed_password = get_password_hash(user.password)
     db_user = User(username=user.username, hashed_password=hashed_password)

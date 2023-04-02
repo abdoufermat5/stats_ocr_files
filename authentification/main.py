@@ -2,8 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from dependencies.dependencies import authenticate_user, create_access_token, get_current_user, create_user
+from dependencies.dependencies import authenticate_user, create_access_token, get_current_user, create_db_user
 from schemas.schemas import Token, UserCreate, User
+from models.models import User as UserModel
 import logging
 from config import logging_config
 
@@ -24,12 +25,10 @@ async def startup():
 
 @app.post("/users", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = authenticate_user(db, user.username, user.password)
-    if db_user:
-        logger.error(f"Username {user.username} already registered")
-        raise HTTPException(status_code=400, detail="Username already registered")
-    logger.info(f"User {user.username} created")
-    return create_user(db=db, user=user)
+    db_user = create_db_user(db, user)
+    if db_user is None:
+        raise HTTPException(status_code=400, detail="User already registered")
+    return db_user
 
 
 @app.post("/token", response_model=Token)
@@ -53,6 +52,12 @@ def login_for_access_token(form_data: UserCreate, db: Session = Depends(get_db))
 def read_users_me(current_user: User = Depends(get_current_user)):
     logger.info(f"User {current_user.username} logged in")
     return current_user
+
+
+@app.get("/users")
+def get_all_users(db: Session = Depends(get_db)):
+    logger.info(f"Getting all users")
+    return db.query(UserModel).all()
 
 
 if __name__ == "__main__":
